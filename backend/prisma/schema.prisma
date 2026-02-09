@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Department {
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String    @unique
+  students  Student[] // Relation: Department has many students
+  instructors Instructor[] // Relation: Department has many instructors
+}
+
+model Student {
+  id             Int       @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  email          String    @unique
+  departmentId   Int
+  department     Department @relation(fields: [departmentId], references: [id])
+  ojtPlacements  OJTPlacement[]
+}
+
+model Instructor {
+  id           Int       @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String    @unique
+  departmentId Int
+  department   Department @relation(fields: [departmentId], references: [id])
+  visits       OJTVisit[]
+}
+
+model IndustrialCoordinator {
+  id        Int      @id @default(autoincrement())
+  name      String
+  company   String
+  email     String   @unique
+  ojtPlacements OJTPlacement[]
+}
+
+model OJTPlacement {
+  id                   Int                   @id @default(autoincrement())
+  studentId            Int
+  coordinatorId        Int
+  startDate            DateTime
+  endDate              DateTime
+  student              Student              @relation(fields: [studentId], references: [id])
+  coordinator          IndustrialCoordinator @relation(fields: [coordinatorId], references: [id])
+  instructorVisits     OJTVisit[]
+}
+
+model OJTVisit {
+  id           Int       @id @default(autoincrement())
+  placementId  Int
+  instructorId Int
+  visitDate    DateTime
+  notes        String?
+  placement    OJTPlacement @relation(fields: [placementId], references: [id])
+  instructor   Instructor   @relation(fields: [instructorId], references: [id])
+}
+
