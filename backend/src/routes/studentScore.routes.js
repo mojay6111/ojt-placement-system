@@ -14,4 +14,6 @@ router.post("/", controller.addScore);
 // Update a score
 router.patch("/:scoreID", controller.updateScore);
 
+
+
 module.exports = router;
