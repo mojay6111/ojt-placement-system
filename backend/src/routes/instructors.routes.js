@@ -1,83 +1,37 @@
 const express = require("express");
-const router = express.Router();
 const prisma = require("../prisma");
+const { authenticate, authorizeRoles } = require("../middleware/auth.middleware");
 
-// GET all instructors
-router.get("/", async (req, res) => {
+const router = express.Router();
+router.use(authenticate);
+
+// GET all instructors – ADMIN only
+router.get("/", authorizeRoles("ADMIN"), async (req, res) => {
   try {
-    const instructors = await prisma.instructor.findMany({
-      include: { department: true }, // Include department info
-    });
-    res.status(200).json(instructors);
-  } catch (error) {
-    console.error("Error fetching instructors:", error);
-    res.status(500).json({ error: "Failed to fetch instructors" });
+    const instructors = await prisma.instructor.findMany();
+    res.json(instructors);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// GET instructor by ID
+// GET instructor by ID – ADMIN or the instructor themselves
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
+  const instructorID = parseInt(req.params.id);
   try {
-    const instructor = await prisma.instructor.findUnique({
-      where: { id: parseInt(id) },
-      include: { department: true },
-    });
-    if (!instructor) return res.status(404).json({ error: "Instructor not found" });
-    res.status(200).json(instructor);
-  } catch (error) {
-    console.error("Error fetching instructor:", error);
-    res.status(500).json({ error: "Failed to fetch instructor" });
-  }
-});
-
-// POST create new instructor
-router.post("/", async (req, res) => {
-  const { firstName, lastName, email, departmentId } = req.body;
-
-  try {
-    const existing = await prisma.instructor.findUnique({ where: { email } });
-    if (existing) {
-      return res.status(400).json({ error: "Instructor email already exists" });
+    if (req.user.role === "ADMIN") {
+      const instructor = await prisma.instructor.findUnique({ where: { instructorID } });
+      return res.json(instructor);
     }
 
-    const instructor = await prisma.instructor.create({
-      data: { firstName, lastName, email, departmentId },
-    });
-    res.status(201).json(instructor);
-  } catch (error) {
-    console.error("Error creating instructor:", error);
-    res.status(500).json({ error: "Failed to create instructor" });
-  }
-});
+    if (req.user.role === "INSTRUCTOR" && req.user.userID === instructorID) {
+      const instructor = await prisma.instructor.findUnique({ where: { instructorID } });
+      return res.json(instructor);
+    }
 
-// PUT update instructor
-router.put("/:id", async (req, res) => {
-  const { id } = req.params;
-  const { firstName, lastName, email, departmentId } = req.body;
-
-  try {
-    const instructor = await prisma.instructor.update({
-      where: { id: parseInt(id) },
-      data: { firstName, lastName, email, departmentId },
-    });
-    res.status(200).json(instructor);
-  } catch (error) {
-    console.error("Error updating instructor:", error);
-    res.status(500).json({ error: "Failed to update instructor" });
-  }
-});
-
-// DELETE instructor
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    await prisma.instructor.delete({ where: { id: parseInt(id) } });
-    res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting instructor:", error);
-    res.status(500).json({ error: "Failed to delete instructor" });
+    return res.status(403).json({ message: "Access denied" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
   }
 });
 

@@ -13,6 +13,9 @@ enum UserRole {
   COORDINATOR
 }
 
+// -----------------------
+// USER
+// -----------------------
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -25,37 +28,47 @@ model User {
   industrialCoordinator IndustrialCoordinator?
 }
 
+// -----------------------
+// DEPARTMENT
+// -----------------------
 model Department {
-  departmentID Int          @id @default(autoincrement())
+  departmentID Int    @id @default(autoincrement())
   name         String
-  code         String       @unique
+  code         String @unique
 
   students    Student[]
   instructors Instructor[]
 }
 
+// -----------------------
+// STUDENT
+// -----------------------
 model Student {
-  studentID       Int    @id @default(autoincrement())
-  userID          Int    @unique
-  user            User   @relation(fields: [userID], references: [id], onDelete: Cascade)
+  studentID Int  @id @default(autoincrement())
+  userID    Int  @unique
+  user      User @relation(fields: [userID], references: [id], onDelete: Cascade)
 
   admissionNumber String @unique
   firstName       String
   lastName        String
 
-  departmentID  Int
-  department    Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
+  departmentID Int
+  department   Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
 
   ojtPlacements OJTPlacement[]
+  scores        StudentScore[]
 }
 
+// -----------------------
+// INSTRUCTOR
+// -----------------------
 model Instructor {
-  instructorID Int    @id @default(autoincrement())
-  userID       Int    @unique
-  user         User   @relation(fields: [userID], references: [id], onDelete: Cascade)
+  instructorID Int  @id @default(autoincrement())
+  userID       Int  @unique
+  user         User @relation(fields: [userID], references: [id], onDelete: Cascade)
 
-  firstName    String
-  lastName     String
+  firstName String
+  lastName  String
 
   departmentID Int
   department   Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
@@ -63,19 +76,25 @@ model Instructor {
   visits OJTVisit[]
 }
 
+// -----------------------
+// INDUSTRIAL COORDINATOR
+// -----------------------
 model IndustrialCoordinator {
-  coordinatorID Int    @id @default(autoincrement())
-  userID        Int    @unique
-  user          User   @relation(fields: [userID], references: [id], onDelete: Cascade)
+  coordinatorID Int  @id @default(autoincrement())
+  userID        Int  @unique
+  user          User @relation(fields: [userID], references: [id], onDelete: Cascade)
 
-  firstName  String
-  lastName   String
+  firstName String
+  lastName  String
 
   placements OJTPlacement[]
 }
 
+// -----------------------
+// OJT PLACEMENT
+// -----------------------
 model OJTPlacement {
-  placementID   Int @id @default(autoincrement())
+  placementID Int @id @default(autoincrement())
 
   studentID     Int
   coordinatorID Int
@@ -83,12 +102,17 @@ model OJTPlacement {
   startDate DateTime
   endDate   DateTime
 
-  student     Student @relation(fields: [studentID], references: [studentID], onDelete: Cascade)
+  student     Student               @relation(fields: [studentID], references: [studentID], onDelete: Cascade)
   coordinator IndustrialCoordinator @relation(fields: [coordinatorID], references: [coordinatorID], onDelete: Restrict)
 
   instructorVisits OJTVisit[]
+  periodID         Int?
+  period           PlacementPeriod? @relation(fields: [periodID], references: [periodID])
 }
 
+// -----------------------
+// OJT VISIT
+// -----------------------
 model OJTVisit {
   visitID Int @id @default(autoincrement())
 
@@ -101,3 +125,37 @@ model OJTVisit {
   placement  OJTPlacement @relation(fields: [placementID], references: [placementID], onDelete: Cascade)
   instructor Instructor   @relation(fields: [instructorID], references: [instructorID], onDelete: Restrict)
 }
+
+
+
+
+// -----------------------
+// PLACEMENT PERIOD
+// -----------------------
+model PlacementPeriod {
+  periodID  Int      @id @default(autoincrement())
+  name      String // e.g., "Jan-Mar 2026"
+  startDate DateTime
+  endDate   DateTime
+
+  placements OJTPlacement[]
+  scores     StudentScore[]
+}
+
+// -----------------------
+// STUDENT SCORE / PERFORMANCE TRACKING
+// -----------------------
+model StudentScore {
+  scoreID    Int      @id @default(autoincrement())
+  studentID  Int
+  periodID   Int
+  attendance Float // 0-100%
+  academic   Float // 0-100% for assignments/tests
+  behavior   Float? // optional
+  totalScore Float // weighted sum or calculated total
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  student Student         @relation(fields: [studentID], references: [studentID], onDelete: Cascade)
+  period  PlacementPeriod @relation(fields: [periodID], references: [periodID], onDelete: Cascade)
+}
+
