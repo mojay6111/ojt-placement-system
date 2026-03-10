@@ -13,6 +13,13 @@ enum UserRole {
   COORDINATOR
 }
 
+enum PlacementStatus {
+  PLACED_AND_REPORTED
+  PLACED_NOT_REPORTED
+  NOT_PLACED
+  DISCIPLINARY
+}
+
 // -----------------------
 // USER
 // -----------------------
@@ -51,9 +58,14 @@ model Student {
   admissionNumber String @unique
   firstName       String
   lastName        String
+  gradeLevel String @default("G1")
 
   departmentID Int
   department   Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
+
+  category  String @default("NITA")
+  course    String @default("ATC")
+  level     String @default("G3")
 
   ojtPlacements OJTPlacement[]
   scores        StudentScore[]
@@ -98,12 +110,19 @@ model OJTPlacement {
 
   studentID     Int
   coordinatorID Int
+  companyID     Int?
 
   startDate DateTime
   endDate   DateTime
 
+  placementStatus  PlacementStatus @default(NOT_PLACED)
+  studentReported  Boolean         @default(false)
+  reportedAt       DateTime?
+  instructorNote   String?
+
   student     Student               @relation(fields: [studentID], references: [studentID], onDelete: Cascade)
   coordinator IndustrialCoordinator @relation(fields: [coordinatorID], references: [coordinatorID], onDelete: Restrict)
+  company     Company?              @relation(fields: [companyID], references: [companyID])
 
   instructorVisits OJTVisit[]
   periodID         Int?
@@ -159,3 +178,20 @@ model StudentScore {
   period  PlacementPeriod @relation(fields: [periodID], references: [periodID], onDelete: Cascade)
 }
 
+// -----------------------
+// COMPANY
+// -----------------------
+model Company {
+  companyID   Int    @id @default(autoincrement())
+  name        String
+  industry    String
+  location    String
+  contactName String?
+  contactEmail String?
+  contactPhone String?
+  capacity    Int    @default(1) // how many students they can take
+
+  createdAt DateTime @default(now())
+
+  placements OJTPlacement[]
+}

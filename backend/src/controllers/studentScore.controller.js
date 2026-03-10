@@ -1,14 +1,8 @@
 const prisma = require("../prisma");
 
-// Utility: calculate totalScore
-function calculateTotal({ attendance, assignments, instructorEval, otherCriteria }) {
-  // Example weights: attendance 30%, assignments 30%, instructorEval 30%, other 10%
-  return (
-    attendance * 0.3 +
-    assignments * 0.3 +
-    instructorEval * 0.3 +
-    otherCriteria * 0.1
-  );
+function calculateTotal({ attendance, academic, behavior }) {
+  // attendance 40%, academic 50%, behavior 10%
+  return attendance * 0.4 + academic * 0.5 + (behavior ?? 0) * 0.1;
 }
 
 exports.getScoresByStudent = async (req, res) => {
@@ -16,7 +10,7 @@ exports.getScoresByStudent = async (req, res) => {
   try {
     const scores = await prisma.studentScore.findMany({
       where: { studentID },
-      include: { placementPeriod: true },
+      include: { period: true },
     });
     res.json(scores);
   } catch (error) {
@@ -29,7 +23,7 @@ exports.getScoresByPeriod = async (req, res) => {
   const periodID = parseInt(req.params.periodID);
   try {
     const scores = await prisma.studentScore.findMany({
-      where: { placementPeriodID: periodID },
+      where: { periodID },
       include: { student: true },
     });
     res.json(scores);
@@ -40,17 +34,16 @@ exports.getScoresByPeriod = async (req, res) => {
 };
 
 exports.addScore = async (req, res) => {
-  const { studentID, placementPeriodID, attendance, assignments, instructorEval, otherCriteria } = req.body;
+  const { studentID, periodID, attendance, academic, behavior } = req.body;
   try {
-    const totalScore = calculateTotal({ attendance, assignments, instructorEval, otherCriteria });
+    const totalScore = calculateTotal({ attendance, academic, behavior });
     const score = await prisma.studentScore.create({
       data: {
         studentID,
-        placementPeriodID,
+        periodID,
         attendance,
-        assignments,
-        instructorEval,
-        otherCriteria,
+        academic,
+        behavior,
         totalScore,
       },
     });
@@ -63,18 +56,12 @@ exports.addScore = async (req, res) => {
 
 exports.updateScore = async (req, res) => {
   const scoreID = parseInt(req.params.scoreID);
-  const { attendance, assignments, instructorEval, otherCriteria } = req.body;
+  const { attendance, academic, behavior } = req.body;
   try {
-    const totalScore = calculateTotal({ attendance, assignments, instructorEval, otherCriteria });
+    const totalScore = calculateTotal({ attendance, academic, behavior });
     const score = await prisma.studentScore.update({
       where: { scoreID },
-      data: {
-        attendance,
-        assignments,
-        instructorEval,
-        otherCriteria,
-        totalScore,
-      },
+      data: { attendance, academic, behavior, totalScore },
     });
     res.json(score);
   } catch (error) {

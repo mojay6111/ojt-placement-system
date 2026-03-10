@@ -3,7 +3,7 @@ const prisma = require("../prisma");
 exports.getAllPeriods = async (req, res) => {
   try {
     const periods = await prisma.placementPeriod.findMany({
-      include: { studentScores: true },
+      include: { scores: true },
     });
     res.json(periods);
   } catch (error) {

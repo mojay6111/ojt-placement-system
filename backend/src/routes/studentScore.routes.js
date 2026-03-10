@@ -1,19 +1,35 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/studentScore.controller");
+const {
+  authenticate,
+  authorizeRoles,
+} = require("../middleware/auth.middleware");
 
-// Get all scores for a student
-router.get("/student/:studentID", controller.getScoresByStudent);
+router.use(authenticate);
 
-// Get all scores in a period
-router.get("/period/:periodID", controller.getScoresByPeriod);
+// Instructor or Admin can view scores by student
+router.get(
+  "/student/:studentID",
+  authorizeRoles("ADMIN", "INSTRUCTOR"),
+  controller.getScoresByStudent,
+);
 
-// Add a score
-router.post("/", controller.addScore);
+// Admin or Coordinator can view scores by period
+router.get(
+  "/period/:periodID",
+  authorizeRoles("ADMIN", "COORDINATOR", "INSTRUCTOR"),
+  controller.getScoresByPeriod,
+);
 
-// Update a score
-router.patch("/:scoreID", controller.updateScore);
+// Only Instructor can add scores
+router.post("/", authorizeRoles("INSTRUCTOR", "ADMIN"), controller.addScore);
 
-
+// Only Instructor or Admin can update scores
+router.patch(
+  "/:scoreID",
+  authorizeRoles("INSTRUCTOR", "ADMIN"),
+  controller.updateScore,
+);
 
 module.exports = router;

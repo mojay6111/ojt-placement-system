@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Student" ADD COLUMN     "category" TEXT NOT NULL DEFAULT 'NITA',
+ADD COLUMN     "course" TEXT NOT NULL DEFAULT 'ATC',
+ADD COLUMN     "level" TEXT NOT NULL DEFAULT 'G3';
