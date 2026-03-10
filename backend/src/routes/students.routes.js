@@ -135,4 +135,21 @@ router.delete("/:id", authorizeRoles("ADMIN"), async (req, res) => {
   }
 });
 
+router.get(
+  "/",
+  authorizeRoles("ADMIN", "INSTRUCTOR", "COORDINATOR"),
+  async (req, res) => {
+    try {
+      const students = await prisma.student.findMany({
+        include: { department: true },
+        orderBy: [{ category: "asc" }, { course: "asc" }, { level: "asc" }],
+      });
+      res.json(students);
+    } catch (err) {
+      console.error("GET /students error:", err);
+      res.status(500).json({ message: "Server error", detail: err.message });
+    }
+  },
+);
+
 module.exports = router;

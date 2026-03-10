@@ -8,6 +8,7 @@ import Departments from "./pages/admin/Departments";
 import Periods from "./pages/admin/Periods";
 import Scores from "./pages/admin/Scores";
 import Ranking from "./pages/admin/Ranking";
+import Placements from "./pages/admin/Placements";
 import PlacementSummary from "./pages/admin/PlacementSummary";
 
 function ProtectedRoute({ children }) {
@@ -34,9 +35,10 @@ export default function App() {
         <Route path="periods" element={<Periods />} />
         <Route path="scores" element={<Scores />} />
         <Route path="ranking" element={<Ranking />} />
+        <Route path="placements" element={<Placements />} />
+        <Route path="summary" element={<PlacementSummary />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" />} />
-      <Route path="summary" element={<PlacementSummary />} />
     </Routes>
   );
 }

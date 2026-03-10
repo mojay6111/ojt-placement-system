@@ -175,7 +175,10 @@ export default function PlacementSummary() {
                     margin: "4px 0 0 0",
                   }}
                 >
-                  {((data.totals[key] / data.totals.total) * 100).toFixed(1)}%
+                  {data.totals.total > 0
+                    ? ((data.totals[key] / data.totals.total) * 100).toFixed(1)
+                    : 0}
+                  %
                 </p>
               )}
             </div>

@@ -35,4 +35,18 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// CREATE coordinator — ADMIN only
+router.post("/", authorizeRoles("ADMIN"), async (req, res) => {
+  const { firstName, lastName, email, userID } = req.body;
+  try {
+    const coordinator = await prisma.industrialCoordinator.create({
+      data: { firstName, lastName, email, userID },
+    });
+    res.status(201).json(coordinator);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

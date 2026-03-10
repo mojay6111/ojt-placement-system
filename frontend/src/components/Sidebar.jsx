@@ -19,6 +19,7 @@ const navItems = [
   { to: "/admin/periods", label: "Periods", icon: Calendar },
   { to: "/admin/scores", label: "Scores", icon: ClipboardList },
   { to: "/admin/ranking", label: "Green List", icon: Trophy },
+  { to: "/admin/summary", label: "Placement Summary", icon: BarChart2 },
 ];
 
 export default function Sidebar() {
@@ -85,42 +86,33 @@ export default function Sidebar() {
 
       {/* Nav Items */}
       <nav style={{ flex: 1, padding: "16px 0" }}>
-        {navItems.map(
-          ({ to, label, icon: Icon, end }) => (
-            {
-              to: "/admin/summary",
-              label: "Placement Summary",
-              icon: BarChart2,
-            },
-            (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                style={({ isActive }) => ({
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "11px 20px",
-                  color: isActive ? "#FEC200" : "#888",
-                  backgroundColor: isActive
-                    ? "rgba(254,194,0,0.08)"
-                    : "transparent",
-                  borderLeft: isActive
-                    ? "3px solid #FEC200"
-                    : "3px solid transparent",
-                  textDecoration: "none",
-                  fontSize: "14px",
-                  fontWeight: isActive ? "600" : "400",
-                  transition: "all 0.15s",
-                })}
-              >
-                <Icon size={18} />
-                {label}
-              </NavLink>
-            )
-          ),
-        )}
+        {navItems.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            style={({ isActive }) => ({
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              padding: "11px 20px",
+              color: isActive ? "#FEC200" : "#888",
+              backgroundColor: isActive
+                ? "rgba(254,194,0,0.08)"
+                : "transparent",
+              borderLeft: isActive
+                ? "3px solid #FEC200"
+                : "3px solid transparent",
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: isActive ? "600" : "400",
+              transition: "all 0.15s",
+            })}
+          >
+            <Icon size={18} />
+            {label}
+          </NavLink>
+        ))}
       </nav>
 
       {/* Logout */}
