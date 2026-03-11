@@ -9,6 +9,7 @@ import {
   Trophy,
   LogOut,
   BarChart2,
+  MapPin,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { to: "/admin/scores", label: "Scores", icon: ClipboardList },
   { to: "/admin/ranking", label: "Green List", icon: Trophy },
   { to: "/admin/summary", label: "Placement Summary", icon: BarChart2 },
+  { to: "/admin/placements", label: "Placements", icon: MapPin },
 ];
 
 export default function Sidebar() {

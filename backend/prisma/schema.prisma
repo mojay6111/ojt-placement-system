@@ -39,12 +39,11 @@ model User {
 // DEPARTMENT
 // -----------------------
 model Department {
-  departmentID Int    @id @default(autoincrement())
+  departmentID Int          @id @default(autoincrement())
   name         String
-  code         String @unique
-
-  students    Student[]
-  instructors Instructor[]
+  code         String       @unique
+  students     Student[]
+  instructors  Instructor[]  // ← add this line
 }
 
 // -----------------------
@@ -75,17 +74,15 @@ model Student {
 // INSTRUCTOR
 // -----------------------
 model Instructor {
-  instructorID Int  @id @default(autoincrement())
-  userID       Int  @unique
-  user         User @relation(fields: [userID], references: [id], onDelete: Cascade)
-
-  firstName String
-  lastName  String
-
-  departmentID Int
-  department   Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
-
-  visits OJTVisit[]
+  instructorID Int         @id @default(autoincrement())
+  userID       Int         @unique
+  user         User        @relation(fields: [userID], references: [id], onDelete: Cascade)
+  firstName    String
+  lastName     String
+  email        String      @unique
+  departmentID Int?
+  department   Department? @relation(fields: [departmentID], references: [departmentID])
+  visits       OJTVisit[]
 }
 
 // -----------------------
@@ -145,8 +142,6 @@ model OJTVisit {
   placement  OJTPlacement @relation(fields: [placementID], references: [placementID], onDelete: Cascade)
   instructor Instructor   @relation(fields: [instructorID], references: [instructorID], onDelete: Restrict)
 }
-
-
 
 
 // -----------------------

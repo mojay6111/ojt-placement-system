@@ -10,6 +10,8 @@ import Scores from "./pages/admin/Scores";
 import Ranking from "./pages/admin/Ranking";
 import Placements from "./pages/admin/Placements";
 import PlacementSummary from "./pages/admin/PlacementSummary";
+import InstructorLayout from "./pages/instructor/InstructorLayout";
+import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -28,6 +30,16 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route
+          path="/instructor"
+          element={
+            <ProtectedRoute>
+              <InstructorLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<InstructorDashboard />} />
+        </Route>
         <Route index element={<Dashboard />} />
         <Route path="students" element={<Students />} />
         <Route path="companies" element={<Companies />} />

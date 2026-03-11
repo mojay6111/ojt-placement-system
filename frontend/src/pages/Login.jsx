@@ -14,7 +14,13 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", form);
       localStorage.setItem("token", res.data.token);
-      navigate("/admin");
+
+      const role = res.data.user?.role || res.data.role;
+
+      if (role === "ADMIN") navigate("/admin");
+      else if (role === "INSTRUCTOR") navigate("/instructor");
+      else if (role === "STUDENT") navigate("/student");
+      else navigate("/admin");
     } catch {
       setError("Invalid email or password");
     } finally {
