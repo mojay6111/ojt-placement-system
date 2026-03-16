@@ -12,7 +12,11 @@ const authenticate = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // { userID, role, iat, exp }
+    req.user = {
+      userID: decoded.userID,
+      id: decoded.userID, // alias so both req.user.id and req.user.userID work
+      role: decoded.role,
+    };
     next();
   } catch (err) {
     res.status(401).json({ message: "Token invalid or expired" });

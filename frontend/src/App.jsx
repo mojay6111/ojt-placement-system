@@ -12,6 +12,8 @@ import Placements from "./pages/admin/Placements";
 import PlacementSummary from "./pages/admin/PlacementSummary";
 import InstructorLayout from "./pages/instructor/InstructorLayout";
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
+import StudentLayout from "./pages/students/StudentLayout";
+import StudentDashboard from "./pages/students/StudentDashboard";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -22,6 +24,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+
+      {/* ADMIN routes */}
       <Route
         path="/admin"
         element={
@@ -30,16 +34,6 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route
-          path="/instructor"
-          element={
-            <ProtectedRoute>
-              <InstructorLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<InstructorDashboard />} />
-        </Route>
         <Route index element={<Dashboard />} />
         <Route path="students" element={<Students />} />
         <Route path="companies" element={<Companies />} />
@@ -50,6 +44,31 @@ export default function App() {
         <Route path="placements" element={<Placements />} />
         <Route path="summary" element={<PlacementSummary />} />
       </Route>
+
+      {/* INSTRUCTOR routes */}
+      <Route
+        path="/instructor"
+        element={
+          <ProtectedRoute>
+            <InstructorLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<InstructorDashboard />} />
+      </Route>
+
+      {/* STUDENT routes */}
+      <Route
+        path="/student"
+        element={
+          <ProtectedRoute>
+            <StudentLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<StudentDashboard />} />
+      </Route>
+
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

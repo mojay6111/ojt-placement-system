@@ -64,6 +64,8 @@ async function login(req, res) {
     return res.json({
       message: "Login successful",
       token,
+      role: user.role,
+      userID: user.id,
     });
   } catch (error) {
     console.error("Login error:", error);
