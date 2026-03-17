@@ -66,6 +66,7 @@ async function login(req, res) {
       token,
       role: user.role,
       userID: user.id,
+      isFirstLogin: user.isFirstLogin,
     });
   } catch (error) {
     console.error("Login error:", error);

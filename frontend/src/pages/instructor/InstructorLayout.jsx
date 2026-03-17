@@ -1,8 +1,18 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, ClipboardList, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  MapPin,
+  Bell,
+  LogOut,
+} from "lucide-react";
 
 const navItems = [
   { to: "/instructor", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/instructor/students", label: "Students", icon: Users },
+  { to: "/instructor/placements", label: "Placements", icon: MapPin },
+  { to: "/instructor/pending", label: "Pending Confirmations", icon: Bell },
 ];
 
 export default function InstructorLayout() {

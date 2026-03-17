@@ -10,8 +10,17 @@ router.use(authenticate);
 
 router.get(
   "/",
-  authorizeRoles("ADMIN", "COORDINATOR", "INSTRUCTOR"),
-  controller.getAllCompanies,
+  authorizeRoles("ADMIN", "INSTRUCTOR", "COORDINATOR"),
+  async (req, res) => {
+    try {
+      const coordinators = await prisma.industrialCoordinator.findMany({
+        include: { department: true },
+      });
+      res.json(coordinators);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+  },
 );
 router.get(
   "/:id",

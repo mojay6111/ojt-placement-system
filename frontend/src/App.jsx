@@ -14,6 +14,10 @@ import InstructorLayout from "./pages/instructor/InstructorLayout";
 import InstructorDashboard from "./pages/instructor/InstructorDashboard";
 import StudentLayout from "./pages/students/StudentLayout";
 import StudentDashboard from "./pages/students/StudentDashboard";
+import InstructorPlacements from "./pages/instructor/InstructorPlacements";
+import PendingConfirmations from "./pages/instructor/PendingConfirmations";
+import ChangePassword from "./pages/ChangePassword";
+import InstructorStudents from "./pages/instructor/InstructorStudents";
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -24,6 +28,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/change-password" element={<ChangePassword />} />
 
       {/* ADMIN routes */}
       <Route
@@ -55,6 +60,10 @@ export default function App() {
         }
       >
         <Route index element={<InstructorDashboard />} />
+        <Route index element={<InstructorDashboard />} />
+        <Route path="placements" element={<InstructorPlacements />} />
+        <Route path="pending" element={<PendingConfirmations />} />
+        <Route path="students" element={<InstructorStudents />} />
       </Route>
 
       {/* STUDENT routes */}

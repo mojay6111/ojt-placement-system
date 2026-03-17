@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, X, Plus } from "lucide-react";
+import { X } from "lucide-react";
 import api from "../../api/axios";
+import PeriodSelector from "../../components/PeriodSelector";
+import usePeriods from "../../hooks/usePeriods";
 
 const STATUS_STYLES = {
   PLACED_AND_REPORTED: {
@@ -40,7 +42,6 @@ const inputStyle = {
 export default function InstructorDashboard() {
   const [instructor, setInstructor] = useState(null);
   const [students, setStudents] = useState([]);
-  const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusModal, setStatusModal] = useState(null);
   const [scoreModal, setScoreModal] = useState(null);
@@ -63,16 +64,27 @@ export default function InstructorDashboard() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [search, setSearch] = useState("");
 
+  const { periods, selectedPeriod, setSelectedPeriod } = usePeriods();
+
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const [instrRes, studRes, perRes] = await Promise.all([
+      const [instrRes, studRes] = await Promise.all([
         api.get("/instructors/me"),
         api.get("/instructors/my-students"),
-        api.get("/periods"),
       ]);
       setInstructor(instrRes.data);
-      setStudents(studRes.data);
-      setPeriods(perRes.data);
+
+      let studentList = studRes.data;
+      if (selectedPeriod !== "all") {
+        studentList = studentList.map((s) => ({
+          ...s,
+          ojtPlacements: s.ojtPlacements?.filter(
+            (p) => String(p.periodID) === String(selectedPeriod),
+          ),
+        }));
+      }
+      setStudents(studentList);
     } catch (err) {
       console.error(err);
     } finally {
@@ -82,9 +94,8 @@ export default function InstructorDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedPeriod]);
 
-  // Stats
   const stats = students.reduce((acc, s) => {
     const status = s.ojtPlacements?.[0]?.placementStatus || "NOT_PLACED";
     acc[status] = (acc[status] || 0) + 1;
@@ -157,28 +168,44 @@ export default function InstructorDashboard() {
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: "28px" }}>
-        <h1
-          style={{
-            color: "#fff",
-            fontSize: "24px",
-            fontWeight: "700",
-            margin: 0,
-          }}
-        >
-          Welcome, {instructor?.firstName} 👋
-        </h1>
-        <p style={{ color: "#666", fontSize: "14px", marginTop: "4px" }}>
-          {instructor?.department?.name} — OJT Instructor Portal
-        </p>
-        <div
-          style={{
-            marginTop: "8px",
-            height: "3px",
-            width: "48px",
-            backgroundColor: "#FEC200",
-            borderRadius: "2px",
-          }}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "28px",
+          flexWrap: "wrap",
+          gap: "12px",
+        }}
+      >
+        <div>
+          <h1
+            style={{
+              color: "#fff",
+              fontSize: "24px",
+              fontWeight: "700",
+              margin: 0,
+            }}
+          >
+            Welcome, {instructor?.firstName} 👋
+          </h1>
+          <p style={{ color: "#666", fontSize: "14px", marginTop: "4px" }}>
+            {instructor?.department?.name} — OJT Instructor Portal
+          </p>
+          <div
+            style={{
+              marginTop: "8px",
+              height: "3px",
+              width: "48px",
+              backgroundColor: "#FEC200",
+              borderRadius: "2px",
+            }}
+          />
+        </div>
+        <PeriodSelector
+          periods={periods}
+          selectedPeriod={selectedPeriod}
+          onChange={setSelectedPeriod}
         />
       </div>
 
@@ -238,7 +265,7 @@ export default function InstructorDashboard() {
         ))}
       </div>
 
-      {/* Pending self-reports alert */}
+      {/* Pending alert */}
       {students.some(
         (s) =>
           s.ojtPlacements?.[0]?.studentReported &&
@@ -365,7 +392,12 @@ export default function InstructorDashboard() {
             ) : (
               filtered.map((s) => {
                 const placement = s.ojtPlacements?.[0];
-                const score = s.scores?.[0];
+                const score =
+                  selectedPeriod === "all"
+                    ? s.scores?.[0]
+                    : s.scores?.find(
+                        (sc) => String(sc.periodID) === String(selectedPeriod),
+                      ) || s.scores?.[0];
                 const st =
                   STATUS_STYLES[placement?.placementStatus] ||
                   STATUS_STYLES.NOT_PLACED;
@@ -515,7 +547,6 @@ export default function InstructorDashboard() {
                           flexWrap: "wrap",
                         }}
                       >
-                        {/* Update Status */}
                         {placement && (
                           <button
                             onClick={() => {
@@ -539,12 +570,14 @@ export default function InstructorDashboard() {
                             ✏️ Status
                           </button>
                         )}
-                        {/* Add Score */}
                         <button
                           onClick={() => {
                             setScoreModal(s);
                             setScoreForm({
-                              periodID: periods[0]?.periodID || "",
+                              periodID:
+                                selectedPeriod !== "all"
+                                  ? selectedPeriod
+                                  : periods[0]?.periodID || "",
                               attendance: score?.attendance || "",
                               academic: score?.academic || "",
                               behavior: score?.behavior || "",
@@ -563,7 +596,6 @@ export default function InstructorDashboard() {
                         >
                           📊 Score
                         </button>
-                        {/* Log Visit */}
                         {placement && (
                           <button
                             onClick={() => {
@@ -598,7 +630,7 @@ export default function InstructorDashboard() {
         </table>
       </div>
 
-      {/* Status Update Modal */}
+      {/* Status Modal */}
       {statusModal && (
         <div
           style={{
@@ -821,6 +853,7 @@ export default function InstructorDashboard() {
                 {periods.map((p) => (
                   <option key={p.periodID} value={p.periodID}>
                     {p.name}
+                    {p.isCurrent ? " ⭐" : ""}
                   </option>
                 ))}
               </select>
@@ -865,7 +898,6 @@ export default function InstructorDashboard() {
                 />
               </div>
             ))}
-            {/* Preview total */}
             {scoreForm.attendance && scoreForm.academic && (
               <div
                 style={{

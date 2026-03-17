@@ -27,11 +27,14 @@ model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   passwordHash String
-  role         UserRole
+  role         UserRole @default(STUDENT)
+  isFirstLogin Boolean  @default(true)
+  phone        String?
+  yearAdmitted Int?
   createdAt    DateTime @default(now())
 
-  student               Student?
-  instructor            Instructor?
+  student              Student?
+  instructor           Instructor?
   industrialCoordinator IndustrialCoordinator?
 }
 
@@ -50,24 +53,21 @@ model Department {
 // STUDENT
 // -----------------------
 model Student {
-  studentID Int  @id @default(autoincrement())
-  userID    Int  @unique
-  user      User @relation(fields: [userID], references: [id], onDelete: Cascade)
-
-  admissionNumber String @unique
+  studentID       Int      @id @default(autoincrement())
+  userID          Int      @unique
+  user            User     @relation(fields: [userID], references: [id], onDelete: Cascade)
+  admissionNumber String   @unique
   firstName       String
   lastName        String
-  gradeLevel String @default("G1")
-
-  departmentID Int
-  department   Department @relation(fields: [departmentID], references: [departmentID], onDelete: Restrict)
-
-  category  String @default("NITA")
-  course    String @default("ATC")
-  level     String @default("G3")
-
-  ojtPlacements OJTPlacement[]
-  scores        StudentScore[]
+  departmentID    Int
+  department      Department @relation(fields: [departmentID], references: [departmentID])
+  category        String   @default("NITA")
+  course          String   @default("ATC")
+  level           String   @default("G3")
+  phone           String?
+  yearAdmitted    Int?
+  ojtPlacements   OJTPlacement[]
+  scores          StudentScore[]
 }
 
 // -----------------------
@@ -148,13 +148,15 @@ model OJTVisit {
 // PLACEMENT PERIOD
 // -----------------------
 model PlacementPeriod {
-  periodID  Int      @id @default(autoincrement())
-  name      String // e.g., "Jan-Mar 2026"
-  startDate DateTime
-  endDate   DateTime
+  periodID   Int      @id @default(autoincrement())
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  isActive   Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
-  placements OJTPlacement[]
-  scores     StudentScore[]
+  placements    OJTPlacement[]
+  studentScores StudentScore[]
 }
 
 // -----------------------

@@ -2,34 +2,32 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
-export default function Login() {
+export default function ChangePassword() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ newPassword: "", confirm: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (form.newPassword.length < 6) {
+      return setError("Password must be at least 6 characters");
+    }
+    if (form.newPassword !== form.confirm) {
+      return setError("Passwords do not match");
+    }
     setLoading(true);
     setError("");
     try {
-      const res = await api.post("/auth/login", form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("userID", res.data.userID);
-
-      // Check first login
-      if (res.data.isFirstLogin) {
-        navigate("/change-password");
-        return;
-      }
-
-      const role = res.data.role;
+      await api.post("/auth/change-password", {
+        newPassword: form.newPassword,
+      });
+      // Redirect based on role
+      const role = localStorage.getItem("role");
       if (role === "ADMIN") navigate("/admin");
       else if (role === "INSTRUCTOR") navigate("/instructor");
-      else if (role === "STUDENT") navigate("/student");
-      else navigate("/login");
-    } catch {
-      setError("Invalid email or password");
+      else navigate("/student");
+    } catch (err) {
+      setError(err.response?.data?.message || "Error changing password");
     } finally {
       setLoading(false);
     }
@@ -43,8 +41,7 @@ export default function Login() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "system-ui, sans-serif",
-        padding: "40px 16px",
+        fontFamily: "Inter, sans-serif",
       }}
     >
       <div
@@ -55,59 +52,66 @@ export default function Login() {
           padding: "40px",
           width: "100%",
           maxWidth: "420px",
-          boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
         }}
       >
-        {/* Logo + Title */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginBottom: "32px",
-          }}
-        >
+        {/* Header */}
+        <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <img
             src="/ect-logo-dark.png"
-            alt="ECT Logo"
+            alt="ECT"
             style={{
-              width: "90px",
-              height: "90px",
-              objectFit: "cover",
-              marginBottom: "16px",
+              width: "70px",
+              height: "70px",
               borderRadius: "50%",
-              padding: "8px",
-              backgroundColor: "#1a1a1a",
               border: "2px solid #FEC200",
+              marginBottom: "16px",
             }}
           />
           <h1
             style={{
-              color: "#ffffff",
+              color: "#fff",
               fontSize: "20px",
               fontWeight: "700",
-              letterSpacing: "1px",
               margin: 0,
-              textAlign: "center",
             }}
           >
-            EASTLANDS COLLEGE OF TECHNOLOGY
+            Set Your Password
           </h1>
-          <p style={{ color: "#FEC200", fontSize: "13px", marginTop: "6px" }}>
-            OJT Placement Management System
+          <p style={{ color: "#666", fontSize: "13px", marginTop: "8px" }}>
+            This is your first login. Please create a new password to continue.
           </p>
           <div
             style={{
-              marginTop: "12px",
+              margin: "12px auto 0",
               height: "3px",
-              width: "60px",
-              backgroundColor: "#CC0000",
+              width: "48px",
+              backgroundColor: "#FEC200",
               borderRadius: "2px",
             }}
           />
         </div>
 
-        {/* Email */}
+        {/* Warning banner */}
+        <div
+          style={{
+            backgroundColor: "rgba(254,194,0,0.08)",
+            border: "1px solid rgba(254,194,0,0.2)",
+            borderRadius: "8px",
+            padding: "12px 16px",
+            marginBottom: "24px",
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>🔐</span>
+          <p style={{ color: "#FEC200", fontSize: "12px", margin: 0 }}>
+            Your current password is your admission number. Create a secure new
+            password.
+          </p>
+        </div>
+
+        {/* New Password */}
         <div style={{ marginBottom: "16px" }}>
           <label
             style={{
@@ -117,13 +121,13 @@ export default function Login() {
               marginBottom: "6px",
             }}
           >
-            Email
+            New Password
           </label>
           <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            placeholder="admin@ojt.com"
+            type="password"
+            value={form.newPassword}
+            onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
+            placeholder="Minimum 6 characters"
             style={{
               width: "100%",
               padding: "12px 16px",
@@ -138,7 +142,7 @@ export default function Login() {
           />
         </div>
 
-        {/* Password */}
+        {/* Confirm Password */}
         <div style={{ marginBottom: "16px" }}>
           <label
             style={{
@@ -148,13 +152,13 @@ export default function Login() {
               marginBottom: "6px",
             }}
           >
-            Password
+            Confirm Password
           </label>
           <input
             type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="••••••••"
+            value={form.confirm}
+            onChange={(e) => setForm({ ...form, confirm: e.target.value })}
+            placeholder="Repeat your password"
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
             style={{
               width: "100%",
@@ -170,7 +174,43 @@ export default function Login() {
           />
         </div>
 
-        {/* Error */}
+        {/* Password strength indicator */}
+        {form.newPassword.length > 0 && (
+          <div style={{ marginBottom: "16px" }}>
+            <div style={{ display: "flex", gap: "4px", marginBottom: "4px" }}>
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: "4px",
+                    borderRadius: "2px",
+                    backgroundColor:
+                      form.newPassword.length >= i * 3
+                        ? i <= 1
+                          ? "#CC0000"
+                          : i <= 2
+                            ? "#f59e0b"
+                            : i <= 3
+                              ? "#60a5fa"
+                              : "#4ade80"
+                        : "#222",
+                  }}
+                />
+              ))}
+            </div>
+            <p style={{ color: "#555", fontSize: "11px", margin: 0 }}>
+              {form.newPassword.length < 6
+                ? "Too short"
+                : form.newPassword.length < 9
+                  ? "Weak"
+                  : form.newPassword.length < 12
+                    ? "Good"
+                    : "Strong"}
+            </p>
+          </div>
+        )}
+
         {error && (
           <p
             style={{
@@ -184,7 +224,6 @@ export default function Login() {
           </p>
         )}
 
-        {/* Submit */}
         <button
           onClick={handleSubmit}
           disabled={loading}
@@ -199,19 +238,17 @@ export default function Login() {
             borderRadius: "8px",
             cursor: loading ? "not-allowed" : "pointer",
             opacity: loading ? 0.7 : 1,
-            marginTop: "8px",
           }}
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {loading ? "Saving..." : "Set Password & Continue →"}
         </button>
 
-        {/* Footer */}
         <p
           style={{
             color: "#555",
             fontSize: "12px",
             textAlign: "center",
-            marginTop: "24px",
+            marginTop: "20px",
           }}
         >
           Eastlands College of Technology © {new Date().getFullYear()}
